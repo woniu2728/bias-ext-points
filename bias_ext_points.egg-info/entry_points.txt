@@ -1,0 +1,2 @@
+[bias.extensions]
+points = bias_ext_points.backend.ext:extend
