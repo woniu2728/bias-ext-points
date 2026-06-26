@@ -1,6 +1,6 @@
 import {
   extendForum,
-} from '@bias/forum'
+} from '@bias/core/forum'
 import ProfilePointsSection from './ProfilePointsSection.vue'
 import {
   buildUserPointsPath,

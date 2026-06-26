@@ -31,7 +31,7 @@ import {
 } from '@bias/core'
 import {
   getUiCopy,
-} from '@bias/forum'
+} from '@bias/core/forum'
 import {
   getUserPointsBalance,
 } from './pointsRuntime.js'
