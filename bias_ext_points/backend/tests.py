@@ -18,7 +18,7 @@ from bias_ext_points.backend.services import (
     get_balance,
     spend_points,
 )
-from extensions.testing import ExtensionRuntimeTestMixin
+from bias_core.testing import ExtensionRuntimeTestMixin
 
 
 class RuntimeModelProxy:
@@ -185,4 +185,5 @@ class PointsRewardIntegrationTests(ExtensionRuntimeTestMixin, TestCase):
         self.assertEqual(get_balance(self.author), 13)
         reasons = list(PointLedgerEntry.objects.order_by("id").values_list("reason", flat=True))
         self.assertEqual(reasons, ["discussion_created", "reply_created"])
+
 
