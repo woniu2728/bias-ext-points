@@ -34,6 +34,18 @@ function registerPointsForum(forum) {
       to: ({ authStore }) => buildUserPointsPath(authStore?.user),
       isVisible: ({ authStore }) => Boolean(authStore?.user),
     })
+    .composerSubmitSuccess({
+      key: 'points-refresh-auth-user-after-submit',
+      moduleId: 'points',
+      order: 90,
+      isVisible: ({ authStore, mode }) => Boolean(authStore?.user) && mode !== 'edit',
+      async run({ authStore }) {
+        if (typeof authStore?.fetchUser !== 'function') {
+          return
+        }
+        await authStore.fetchUser()
+      },
+    })
     .profilePanel({
       key: 'points',
       moduleId: 'points',

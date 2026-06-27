@@ -3,6 +3,7 @@ from io import StringIO
 
 from django.core.management import call_command
 from django.test import TestCase
+from ninja_jwt.tokens import RefreshToken
 
 from bias_core.extension_settings_service import save_extension_settings
 from bias_core.extensions.runtime import (
@@ -150,6 +151,40 @@ class PointsServiceTests(TestCase):
                 reason="manual_spend",
                 idempotency_key="manual:spend:insufficient",
             )
+
+
+class PointsApiTests(ExtensionRuntimeTestMixin, TestCase):
+    def setUp(self):
+        self.bootstrap_extensions("points")
+        self.user = User.objects.create_user(
+            username="points-api-user",
+            email="points-api-user@example.com",
+            password="password123",
+            is_email_confirmed=True,
+        )
+        award_points(
+            self.user,
+            15,
+            reason="manual_award",
+            idempotency_key="manual:api:award",
+        )
+
+    def auth_header(self):
+        token = RefreshToken.for_user(self.user).access_token
+        return {"HTTP_AUTHORIZATION": f"Bearer {token}"}
+
+    def test_current_points_accepts_access_token_user(self):
+        response = self.client.get("/api/points/me", **self.auth_header())
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.json()["balance"], 15)
+
+    def test_points_ledger_accepts_access_token_user(self):
+        response = self.client.get("/api/points/ledger", **self.auth_header())
+
+        self.assertEqual(response.status_code, 200, response.content)
+        payload = response.json()
+        self.assertEqual(payload["data"][0]["balance_after"], 15)
 
 
 class PointsRewardIntegrationTests(ExtensionRuntimeTestMixin, TestCase):
