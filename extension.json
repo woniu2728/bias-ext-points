@@ -20,5 +20,8 @@
   "extra": {
     "auto_install": true,
     "auto_enable": true
+  },
+  "security": {
+    "capabilities_notice": "Reputation extension; records point ledger entries and exposes profile point summaries."
   }
 }
