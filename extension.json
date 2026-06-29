@@ -7,7 +7,14 @@
     "Bias"
   ],
   "dependencies": [
-    "core"
+    "core",
+    "users"
+  ],
+  "optional_dependencies": [
+    "content",
+    "discussions",
+    "posts",
+    "likes"
   ],
   "django": {
     "app_config": "bias_ext_points.backend.apps.PointsExtensionConfig",

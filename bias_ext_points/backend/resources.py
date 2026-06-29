@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from bias_core.extensions import ResourceFieldDefinition
 
+from bias_ext_points.backend.constants import EXTENSION_ID
+
 
 USER_POINT_RESOURCES = (
     "user_detail",
@@ -17,7 +19,7 @@ def user_points_resource_field_definitions():
         ResourceFieldDefinition(
             resource=resource,
             field="points_balance",
-            module_id="points",
+            module_id=EXTENSION_ID,
             resolver=resolve_user_points_balance,
             description="用户当前积分余额。",
             select_related=("point_account",),

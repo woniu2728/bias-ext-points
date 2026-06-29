@@ -2,8 +2,10 @@
 name = "bias-ext-points"
 version = "0.1.0"
 dependencies = ["bias-core>=0.1,<0.2"]
+
 [project.entry-points."bias.extensions"]
 points = "bias_ext_points.backend.ext:extend"
+
 [tool.setuptools]
 include-package-data = true
 
@@ -13,5 +15,9 @@ include = ["bias_ext_points*"]
 
 [tool.setuptools.data-files]
 "bias_extensions/points" = ["extension.json"]
-"bias_extensions/points/frontend/forum" = ["frontend/forum/index.js", "frontend/forum/pointsRuntime.js", "frontend/forum/ProfilePointsSection.vue", "frontend/forum/sdk.js"]
-
+"bias_extensions/points/frontend/forum" = [
+  "frontend/forum/ProfilePointsSection.vue",
+  "frontend/forum/index.js",
+  "frontend/forum/pointsRuntime.js",
+  "frontend/forum/sdk.js",
+]

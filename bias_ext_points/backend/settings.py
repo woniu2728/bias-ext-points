@@ -4,8 +4,7 @@ from dataclasses import dataclass
 
 from bias_core.extensions.platform import get_extension_settings
 
-
-EXTENSION_ID = "points"
+from bias_ext_points.backend.constants import EXTENSION_ID
 
 
 @dataclass(frozen=True)

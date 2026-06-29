@@ -1,11 +1,13 @@
 import json
 from io import StringIO
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from django.core.management import call_command
 from django.test import TestCase
 from ninja_jwt.tokens import RefreshToken
 
-from bias_core.extension_settings_service import save_extension_settings
+from bias_core.extensions.testing import ExtensionRuntimeTestMixin, build_extension_test_host, save_extension_settings
 from bias_core.extensions.runtime import (
     create_runtime_discussion,
     create_runtime_post,
@@ -19,7 +21,6 @@ from bias_ext_points.backend.services import (
     get_balance,
     spend_points,
 )
-from bias_core.testing import ExtensionRuntimeTestMixin
 
 
 class RuntimeModelProxy:
@@ -43,6 +44,35 @@ class PointsExtensionDiagnosticsTests(ExtensionRuntimeTestMixin, TestCase):
         self.assertTrue(callable(service["award"]))
         self.assertTrue(callable(service["spend"]))
         self.assertIn("discussion_create_reward", {item.key for item in runtime_view.settings_schema})
+
+    def test_reward_event_integrations_are_optional(self):
+        application = build_extension_test_host("points")
+
+        self.assertEqual(application.events.get_listeners(extension_id="points"), [])
+        self.assertIsNone(application.get_service("posts.service"))
+        self.assertIsNone(application.get_service("likes.service"))
+
+    def test_discussion_and_post_reward_integrations_register_independently(self):
+        application = build_extension_test_host("posts", "points")
+        listener_names = {
+            listener.handler.__name__
+            for listener in application.events.get_listeners(extension_id="points")
+        }
+
+        self.assertIsNotNone(application.get_service("posts.service"))
+        self.assertIn("handle_discussion_created", listener_names)
+        self.assertIn("handle_post_created", listener_names)
+        self.assertNotIn("handle_post_liked", listener_names)
+
+    def test_like_reward_integration_requires_likes_event_contract_only(self):
+        application = build_extension_test_host("likes", "points")
+        listener_names = {
+            listener.handler.__name__
+            for listener in application.events.get_listeners(extension_id="points")
+        }
+
+        self.assertIsNotNone(application.get_service("likes.service"))
+        self.assertIn("handle_post_liked", listener_names)
 
     def test_inspect_reports_points_extension_without_validation_errors(self):
         stdout = StringIO()
@@ -220,5 +250,33 @@ class PointsRewardIntegrationTests(ExtensionRuntimeTestMixin, TestCase):
         self.assertEqual(get_balance(self.author), 13)
         reasons = list(PointLedgerEntry.objects.order_by("id").values_list("reason", flat=True))
         self.assertEqual(reasons, ["discussion_created", "reply_created"])
+
+    def test_like_reward_uses_likes_event_author_contract(self):
+        from bias_ext_points.backend.listeners import handle_post_liked
+
+        liker = User.objects.create_user(
+            username="points-liker",
+            email="points-liker@example.com",
+            password="password123",
+            is_email_confirmed=True,
+        )
+        event = SimpleNamespace(
+            post_id=55,
+            actor_user_id=liker.id,
+            post_user_id=self.author.id,
+        )
+
+        with patch(
+            "bias_ext_points.backend.listeners.get_runtime_post_by_id",
+            create=True,
+            side_effect=AssertionError("points should use the likes event author contract"),
+        ):
+            handle_post_liked(event)
+
+        self.assertEqual(get_balance(self.author), 1)
+        self.assertEqual(
+            PointLedgerEntry.objects.get(reason="like_received").meta["from_user_id"],
+            liker.id,
+        )
 
 

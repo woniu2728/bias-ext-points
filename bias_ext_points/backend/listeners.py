@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bias_core.extensions.runtime import get_runtime_post_by_id, get_runtime_user_by_id
+from bias_core.extensions.runtime import get_runtime_user_by_id
 from bias_ext_points.backend.settings import get_points_settings
 from bias_ext_points.backend.services import award_points
 
@@ -45,25 +45,21 @@ def handle_post_liked(event) -> None:
     settings = get_points_settings()
     if not settings.enabled or settings.like_received_reward <= 0:
         return
-    try:
-        post = get_runtime_post_by_id(
-            int(getattr(event, "post_id", 0)),
-            select_related=("user",),
-        )
-    except Exception:
+    post_user_id = int(getattr(event, "post_user_id", 0) or 0)
+    actor_user_id = int(getattr(event, "actor_user_id", 0) or 0)
+    if not post_user_id or post_user_id == actor_user_id:
         return
-    if post is None or not getattr(post, "user", None):
-        return
-    if int(getattr(post, "user_id", 0) or 0) == int(getattr(event, "actor_user_id", 0) or 0):
+    user = _resolve_user_or_none(post_user_id)
+    if user is None:
         return
     award_points(
-        post.user,
+        user,
         settings.like_received_reward,
         reason="like_received",
-        idempotency_key=f"post:like-received:{event.post_id}:{event.actor_user_id}",
+        idempotency_key=f"post:like-received:{event.post_id}:{actor_user_id}",
         source_type="post",
         source_id=getattr(event, "post_id", ""),
-        meta={"event": "PostLikedEvent", "from_user_id": getattr(event, "actor_user_id", None)},
+        meta={"event": "PostLikedEvent", "from_user_id": actor_user_id},
     )
 
 
