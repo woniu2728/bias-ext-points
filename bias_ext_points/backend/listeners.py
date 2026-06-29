@@ -1,8 +1,13 @@
 from __future__ import annotations
 
-from bias_core.extensions.runtime import get_runtime_user_by_id
 from bias_ext_points.backend.settings import get_points_settings
 from bias_ext_points.backend.services import award_points
+
+
+def get_runtime_user_by_id(*args, **kwargs):
+    from bias_core.extensions.runtime import get_runtime_user_by_id as runtime_get_user_by_id
+
+    return runtime_get_user_by_id(*args, **kwargs)
 
 
 def handle_discussion_created(event) -> None:

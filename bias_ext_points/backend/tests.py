@@ -8,12 +8,6 @@ from django.test import TestCase
 from ninja_jwt.tokens import RefreshToken
 
 from bias_core.extensions.testing import ExtensionRuntimeTestMixin, build_extension_test_host, save_extension_settings
-from bias_core.extensions.runtime import (
-    create_runtime_discussion,
-    create_runtime_post,
-    get_runtime_user_model,
-    get_runtime_resource_registry,
-)
 from bias_ext_points.backend.models import PointLedgerEntry
 from bias_ext_points.backend.services import (
     InsufficientPointsError,
@@ -21,6 +15,28 @@ from bias_ext_points.backend.services import (
     get_balance,
     spend_points,
 )
+
+
+def _runtime_facade(name: str):
+    from importlib import import_module
+
+    return getattr(import_module("bias_core.extensions.runtime"), name)
+
+
+def create_runtime_discussion(*args, **kwargs):
+    return _runtime_facade("create_runtime_discussion")(*args, **kwargs)
+
+
+def create_runtime_post(*args, **kwargs):
+    return _runtime_facade("create_runtime_post")(*args, **kwargs)
+
+
+def get_runtime_resource_registry(*args, **kwargs):
+    return _runtime_facade("get_runtime_resource_registry")(*args, **kwargs)
+
+
+def get_runtime_user_model(*args, **kwargs):
+    return _runtime_facade("get_runtime_user_model")(*args, **kwargs)
 
 
 class RuntimeModelProxy:
