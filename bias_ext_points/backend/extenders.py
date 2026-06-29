@@ -71,6 +71,7 @@ def like_integration_extenders():
 
 def optional_integration_extenders():
     return (
+        ConditionalExtender().when_extension_enabled("content", discussion_integration_extenders),
         ConditionalExtender().when_extension_enabled("discussions", discussion_integration_extenders),
         ConditionalExtender().when_extension_enabled("posts", post_integration_extenders),
         ConditionalExtender().when_extension_enabled("likes", like_integration_extenders),

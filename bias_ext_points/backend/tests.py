@@ -52,13 +52,14 @@ class PointsExtensionDiagnosticsTests(ExtensionRuntimeTestMixin, TestCase):
         self.assertIsNone(application.get_service("posts.service"))
         self.assertIsNone(application.get_service("likes.service"))
 
-    def test_discussion_and_post_reward_integrations_register_independently(self):
+    def test_post_reward_integration_registers_content_discussion_rewards(self):
         application = build_extension_test_host("posts", "points")
         listener_names = {
             listener.handler.__name__
             for listener in application.events.get_listeners(extension_id="points")
         }
 
+        self.assertIsNotNone(application.get_service("content.discussions"))
         self.assertIsNotNone(application.get_service("posts.service"))
         self.assertIn("handle_discussion_created", listener_names)
         self.assertIn("handle_post_created", listener_names)
