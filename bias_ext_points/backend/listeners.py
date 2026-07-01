@@ -4,10 +4,20 @@ from bias_ext_points.backend.settings import get_points_settings
 from bias_ext_points.backend.services import award_points
 
 
-def get_runtime_user_by_id(*args, **kwargs):
-    from bias_core.extensions.runtime import get_runtime_user_by_id as runtime_get_user_by_id
+def get_user_service():
+    from bias_core.extensions.runtime import get_runtime_service
 
-    return runtime_get_user_by_id(*args, **kwargs)
+    return get_runtime_service("users.service")
+
+
+def _service_method(service, name: str):
+    if isinstance(service, dict):
+        method = service.get(name)
+    else:
+        method = getattr(service, name, None)
+    if not callable(method):
+        raise RuntimeError(f"Points 扩展运行时服务缺少方法: {name}")
+    return method
 
 
 def handle_discussion_created(event) -> None:
@@ -70,7 +80,7 @@ def handle_post_liked(event) -> None:
 
 def _resolve_user_or_none(user_id: int):
     try:
-        return get_runtime_user_by_id(int(user_id or 0))
+        return _service_method(get_user_service(), "get_by_id")(int(user_id or 0))
     except Exception:
         return None
 

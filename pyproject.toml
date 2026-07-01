@@ -1,7 +1,10 @@
 [project]
 name = "bias-ext-points"
 version = "0.1.0"
-dependencies = ["bias-core>=0.1,<0.2"]
+dependencies = [
+  "bias-core>=0.1,<0.2",
+  "bias-ext-users>=0.1,<0.2",
+]
 
 [project.entry-points."bias.extensions"]
 points = "bias_ext_points.backend.ext:extend"
@@ -22,5 +25,5 @@ include = ["bias_ext_points*"]
   "frontend/forum/sdk.js",
 ]
 
-[tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "bias_core.extension_test_settings"
+[tool.pytest."ini_options"]
+"DJANGO_SETTINGS_MODULE" = "bias_core.extension_test_settings"
